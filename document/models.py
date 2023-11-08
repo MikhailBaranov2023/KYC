@@ -6,7 +6,8 @@ NULLABLE = {'blank': True, 'null': True}
 
 
 class Document(models.Model):
-    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь')
+    user = models.OneToOneField(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь',
+                                **NULLABLE)
     verification_status = models.BooleanField(default=False, verbose_name='cтатус верификации')
     document = models.ImageField(**NULLABLE, verbose_name='документ подтверждающий личность')
 
