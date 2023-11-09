@@ -5,7 +5,7 @@ from document.models import Document
 from document.serializers import DocumentSerializer, DocumentVerifiedSerializer
 from document.permissions import IsStaffPermission
 from rest_framework.permissions import IsAuthenticated
-from document.services.services import send_mail_to_admin, send_mail_verification, send_mail_not_verified
+from document.tasks import send_mail_to_admin, send_mail_verification, send_mail_not_verified
 
 
 class DocumentUpdateDestroyAPIView(generics.UpdateAPIView, generics.DestroyAPIView,
@@ -31,7 +31,7 @@ class DocumentCreateAPIView(generics.CreateAPIView):
         new_document = serializer.save()
         new_document.user = self.request.user
         new_document.save()
-        send_mail_to_admin(new_document.document, new_document.id, new_document.user)
+        send_mail_to_admin.delay(new_document.document, new_document.id, new_document.user)
 
 
 class DocumentVerifiedAPIView(generics.UpdateAPIView):
@@ -42,6 +42,7 @@ class DocumentVerifiedAPIView(generics.UpdateAPIView):
     def perform_update(self, serializer):
         document = serializer.save()
         if document.verification_status is True:
-            send_mail_verification(document.user)
+            send_mail_verification.delay(document.user)
+
         elif document.verification_status is False:
-            send_mail_not_verified(document.user)
+            send_mail_not_verified.delay(document.user)

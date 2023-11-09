@@ -1,15 +1,14 @@
 from django.core.mail import send_mail
 from django.conf import settings
 from users.models import User
+from celery import shared_task
 
 domain = '"http://localhost:8000/'
 
 
+@shared_task(serializer="pickle")
 def send_mail_to_admin(document, document_id, user):
     admin = User.objects.filter(is_staff=True)
-    print(admin)
-    print(user)
-    print(document)
     send_mail(
         subject=f'{user} отправил документы для подтвержедения',
         message=f"""
@@ -19,24 +18,23 @@ def send_mail_to_admin(document, document_id, user):
         from_email=settings.EMAIL_HOST_USER,
         recipient_list=admin
     )
-    print("отправлено")
 
 
+@shared_task(serializer="pickle")
 def send_mail_verification(user):
     send_mail(
         subject='Результат верификации',
         message=f'Ваши документы подтверждены',
         from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[user,]
+        recipient_list=[user, ]
     )
-    print('Сообщение отправлено')
 
 
+@shared_task(serializer="pickle")
 def send_mail_not_verified(user):
     send_mail(
         subject='Резульатат верификации',
         message='Ваши документы не подтврждены, загрузите документы повторно',
         from_email=settings.EMAIL_HOST_USER,
-        recipient_list=[user,]
+        recipient_list=[user, ]
     )
-    print('Сообщение отправлено')
